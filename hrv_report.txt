@@ -8,18 +8,17 @@ HRV 分析報告 — my_ecg_5min.csv
 
 R 波偵測 (neurokit2, 原始 adc 訊號)
   R 波數           : 469
-  RR 間隔平均       : 813.3 ms
-  RR 間隔範圍       : 692 ~ 960 ms
-  平均心率          : 73.8 bpm
+  RR 間隔平均       : 813.3 ms  (範圍 692 ~ 960 ms)
+  心率 平均/最低/最高 : 74.0 / 62.5 / 86.7 bpm
 
 時域 HRV
-  RMSSD            : 25.6 ms
   SDNN             : 48.2 ms
+  RMSSD            : 25.6 ms
   pNN50            : 4.9 %
 
-頻域 HRV
-  LF (0.04-0.15 Hz): 0.0060 (normalized)
-  HF (0.15-0.40 Hz): 0.0019 (normalized)
+頻域 HRV (Welch, 絕對功率)
+  LF (0.04-0.15 Hz): 736.3 ms²
+  HF (0.15-0.40 Hz): 237.0 ms²
   LF/HF ratio      : 3.11
 
 非線性 (Poincaré)
@@ -27,6 +26,9 @@ R 波偵測 (neurokit2, 原始 adc 訊號)
   SD2              : 65.9 ms
   SD2/SD1          : 3.63
 
+解讀
+  平均心率 74 bpm，屬正常靜息範圍。SDNN 48 ms 與 RMSSD 26 ms 顯示整體變異正常、短期逐拍變異中等。LF/HF 比值偏高，顯示記錄期間交感神經活性相對占優（清醒靜坐狀態常見）。Poincaré SD2/SD1 = 3.63，長期變異明顯大於短期變異，與上述頻域結果一致。本結果僅為訊號分析，非醫療診斷。
+
 輸出檔案
-  ecg_rpeaks.png   - ECG 全程與 60-70 秒放大圖，R 波標記
-  poincare.png     - 龐加萊圖
+  hrv_report.png   - 4 合 1 報告圖 (ECG+R 波 / RR 趨勢 / 時域指標 / 頻譜)
+  poincare.png     - 龐加萊圖 (含 SD1/SD2 橢圓與箭頭)
