@@ -1,0 +1,32 @@
+HRV 分析報告 — my_ecg_5min.csv
+================================================
+
+資料
+  取樣率           : 500 Hz
+  總長度           : 190826 樣本 (6.4 分鐘)
+  電極脫落樣本      : 0
+
+R 波偵測 (neurokit2, 原始 adc 訊號)
+  R 波數           : 469
+  RR 間隔平均       : 813.3 ms
+  RR 間隔範圍       : 692 ~ 960 ms
+  平均心率          : 73.8 bpm
+
+時域 HRV
+  RMSSD            : 25.6 ms
+  SDNN             : 48.2 ms
+  pNN50            : 4.9 %
+
+頻域 HRV
+  LF (0.04-0.15 Hz): 0.0060 (normalized)
+  HF (0.15-0.40 Hz): 0.0019 (normalized)
+  LF/HF ratio      : 3.11
+
+非線性 (Poincaré)
+  SD1              : 18.1 ms
+  SD2              : 65.9 ms
+  SD2/SD1          : 3.63
+
+輸出檔案
+  ecg_rpeaks.png   - ECG 全程與 60-70 秒放大圖，R 波標記
+  poincare.png     - 龐加萊圖
