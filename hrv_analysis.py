@@ -60,61 +60,71 @@ rr_even = interp(t_even)
 freq, psd = welch(rr_even - rr_even.mean(), fs=4.0, nperseg=min(256, len(rr_even)))
 
 # --- 3. 4-panel HRV report ---------------------------------------------
-fig, axes = plt.subplots(2, 2, figsize=(15, 9))
+DARK = "#0d1421"
+fig, axes = plt.subplots(2, 2, figsize=(13, 9.5))
+fig.patch.set_facecolor(DARK)
 
-# (a) ECG with R peaks (10-s window so beats are visible)
+def dark_style(ax):
+    ax.set_facecolor("white")
+    ax.title.set_color("white")
+    ax.xaxis.label.set_color("white")
+    ax.yaxis.label.set_color("white")
+    ax.tick_params(colors="white")
+    for spine in ax.spines.values():
+        spine.set_color("white")
+
+# (a) ECG with R peaks — first 10 s
 ax = axes[0, 0]
 t = np.arange(len(ecg)) / FS
-seg = (t >= 60) & (t < 70)
-ax.plot(t[seg], clean[seg], lw=0.8)
-pk_seg = rpeaks[(rpeaks >= 60 * FS) & (rpeaks < 70 * FS)]
-ax.plot(pk_seg / FS, clean[pk_seg], "rv", ms=8)
-ax.set_title(f"ECG with R-peak detection  ({len(rpeaks)} beats total)")
+seg = t < 10
+scale = np.abs(clean[seg]).max()          # display in arbitrary units
+ax.plot(t[seg], clean[seg] / scale, lw=0.9, color="#2a9d8f")
+pk_seg = rpeaks[rpeaks < 10 * FS]
+ax.plot(pk_seg / FS, clean[pk_seg] / scale, "o", ms=5, color="#d62828",
+        label="R peaks")
+ax.set_title("ECG with R-peak detection (first 10s)")
 ax.set_xlabel("Time (s)")
-ax.set_ylabel("Amplitude")
+ax.set_ylabel("ECG (a.u.)")
+ax.legend(loc="upper right")
+dark_style(ax)
 
-# (b) RR interval trend
+# (b) RR interval tachogram
 ax = axes[0, 1]
-ax.plot(rr_t, rr_ms, lw=0.8, color="tab:green")
-ax.axhline(rr_ms.mean(), color="k", ls="--", lw=0.8, alpha=0.6,
-           label=f"mean {rr_ms.mean():.0f} ms")
-ax.set_title("RR interval trend")
+ax.plot(rr_t, rr_ms, lw=0.9, color="royalblue")
+ax.set_title("RR Interval Tachogram")
 ax.set_xlabel("Time (s)")
-ax.set_ylabel("RR (ms)")
-ax.legend()
+ax.set_ylabel("RR interval (ms)")
+dark_style(ax)
 
-# (c) Time-domain metrics panel
+# (c) Time-domain metrics bar chart
 ax = axes[1, 0]
-ax.axis("off")
-ax.set_title("Time-domain HRV")
-lines = [
-    ("Mean HR", f"{hr_mean:.1f} bpm  (min {hr_min:.0f} / max {hr_max:.0f})"),
-    ("SDNN", f"{sdnn:.1f} ms"),
-    ("RMSSD", f"{rmssd:.1f} ms"),
-    ("pNN50", f"{pnn50:.1f} %"),
-    ("SD1 / SD2", f"{sd1:.1f} / {sd2:.1f} ms"),
-]
-for i, (k, v) in enumerate(lines):
-    ax.text(0.08, 0.85 - i * 0.16, k, fontsize=14, fontweight="bold",
-            transform=ax.transAxes)
-    ax.text(0.45, 0.85 - i * 0.16, v, fontsize=14, transform=ax.transAxes)
+names = ["RMSSD", "SDNN", "MeanNN", "pNN50"]      # bottom -> top
+vals = [rmssd, sdnn, rr_ms.mean(), pnn50]
+colors = ["#2a9d8f", "#3454d1", "#7b52e0", "#e9a03b"]
+bars = ax.barh(names, vals, color=colors)
+for b, v in zip(bars, vals):
+    ax.text(v + 8, b.get_y() + b.get_height() / 2, f"{v:.1f}",
+            va="center", fontsize=10)
+ax.set_xlim(0, max(vals) * 1.12)
+ax.set_title("Time-Domain HRV Metrics")
+ax.set_xlabel("Value (ms / %)")
+dark_style(ax)
 
-# (d) Frequency-domain PSD with LF/HF bands
+# (d) Frequency-domain pie: LF vs HF share of (LF+HF) power
 ax = axes[1, 1]
-ax.plot(freq, psd, lw=1.2, color="tab:blue")
-ax.fill_between(freq, psd, where=(freq >= 0.04) & (freq < 0.15),
-                alpha=0.4, color="tab:orange", label=f"LF = {lf:.0f} ms²")
-ax.fill_between(freq, psd, where=(freq >= 0.15) & (freq < 0.40),
-                alpha=0.4, color="tab:green", label=f"HF = {hf:.0f} ms²")
-ax.set_xlim(0, 0.5)
-ax.set_title(f"RR power spectrum (Welch)   LF/HF = {lfhf:.2f}")
-ax.set_xlabel("Frequency (Hz)")
-ax.set_ylabel("PSD (ms²/Hz)")
-ax.legend()
+ax.set_facecolor(DARK)
+wedges, labels_txt, pct_txt = ax.pie(
+    [lf, hf], labels=["LF", "HF"], colors=["#e9a03b", "#2a9d8f"],
+    autopct="%.1f%%", startangle=90, counterclock=False,
+    textprops={"fontsize": 12})
+for lt in labels_txt:
+    lt.set_color("white")
+ax.set_title(f"Frequency-Domain (LF/HF = {lfhf:.2f})", color="white")
 
-fig.suptitle("HRV Analysis Report — my_ecg_5min.csv", fontsize=15)
-fig.tight_layout(rect=[0, 0, 1, 0.97])
-fig.savefig("hrv_report.png", dpi=150)
+fig.suptitle("HRV Analysis Report — my_ecg_5min.csv", fontsize=16,
+             fontweight="bold", color="white")
+fig.tight_layout(rect=[0, 0, 1, 0.96])
+fig.savefig("hrv_report.png", dpi=150, facecolor=DARK)
 plt.close(fig)
 
 # --- 4. Poincaré plot with ellipse and SD1/SD2 arrows -------------------
